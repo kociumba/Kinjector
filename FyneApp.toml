@@ -1,0 +1,8 @@
+Website = "https://github.com/kociumba/Kinjector"
+
+[Details]
+  Icon = "icon.png"
+  Name = "Kinjector"
+  ID = "com.Kinjector.app"
+  Version = "1.0.0"
+  Build = 2
