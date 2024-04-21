@@ -1,0 +1,11 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  build:
+    cmds:
+    - go get -C {{.CLI_ARGS}} -d ./...
+    - go install fyne.io/fyne/v2/cmd/fyne@latest
+    - fyne bundle -o bundled.go icon.png
+    - fyne package -os windows -icon icon.png

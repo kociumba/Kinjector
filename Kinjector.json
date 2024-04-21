@@ -6,7 +6,7 @@
     "depends": [
         "main/go",
         "main/gcc",
-        "main/make"
+        "main/task"
     ],
     "architecture": "x64",
     "extract_dir": "Kinjector-main",
@@ -23,7 +23,7 @@
     ],
     "installer": {
         "script": [
-            "make -f $dir\\makefile dir=$dir"
+            "task build -- $dir"
         ]
     },
     "post_install": [
