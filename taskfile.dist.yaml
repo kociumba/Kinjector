@@ -5,6 +5,7 @@ version: '3'
 tasks:
   build:
     cmds:
+    - cd {{.CLI_ARGS}}
     - go get -C {{.CLI_ARGS}} -d ./...
     - go install fyne.io/fyne/v2/cmd/fyne@latest
     - fyne bundle -o bundled.go icon.png
