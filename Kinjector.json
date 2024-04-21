@@ -1,0 +1,34 @@
+{
+    "version": "0.0.0.1",
+    "description": "A GUI .dll injector written in go",
+    "homepage": "https://github.com/kociumba/kinjector",
+    "license": "MIT",
+    "depends": [
+        "main/go",
+        "main/gcc"
+    ],
+    "architecture": "x64",
+    "extract_dir": "Kinjector-main",
+    "pre_install": [
+        "Write-Host `n",
+        "Write-Host '============================ ⚠️ WARNING ⚠️ ============================' -ForegroundColor Red ",
+        "Write-Host 'This script will download and compile Kinjector with its dependencies.'",
+        "Write-Host 'Compilation can take up to 10min first time depending on your hardware.'",
+        "Write-Host '=======================================================================' -ForegroundColor Red",
+        "Write-Host `n",
+        "$response = Read-Host 'Proceed with the download and compilation? (yes[y]/no[n])';",
+        "if ($response -eq 'no' -or $response -eq 'n') { Write-Host 'Cancelling the installation...' -ForegroundColor Red; exit };",
+        "if ($response -ne 'yes' -and $response -ne 'y') { Write-Host 'Invalid input.' -ForegroundColor Yellow; exit };"
+    ],
+    "installer": {
+        "script": [
+            "go get -C $dir -d ./...",
+            "go install fyne.io/fyne/v2/cmd/fyne@latest",
+            "fyne bundle -o bundled.go icon.png",
+            "fyne package -os windows -icon icon.png"
+        ]
+    },
+    "bin": "Kinjector.exe",
+    "hash": "",
+    "url": "https://github.com/kociumba/kinjector/archive/refs/heads/main.zip"
+}

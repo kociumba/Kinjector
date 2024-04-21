@@ -23,11 +23,28 @@ type UserSelection struct {
 	SelectedProc string
 	SelectedDll  string
 	DllFile      string
+	processNames []string
 }
 
 func trimFilePath(path string) string {
 	_, fileName := filepath.Split(path)
 	return fileName
+}
+
+// get a snapshot of the current running procesess
+//
+// convert it into a list of process names
+func ProcSnapshot() ([]string, error) {
+	procList, err := ps.Processes()
+	if err != nil {
+		clog.Fatal(err)
+	}
+
+	var processNames []string
+	for _, process := range procList {
+		processNames = append(processNames, process.Executable())
+	}
+	return processNames, err
 }
 
 func main() {
@@ -71,25 +88,30 @@ func main() {
 	})
 
 	// get a snapshot of the current running procesess
-	procList, err := ps.Processes()
+	// convert it into a list of process names
+	initialProcessNames, err := ProcSnapshot()
 	if err != nil {
+		dialog.NewError(err, w).Show()
 		clog.Fatal(err)
 	}
-	// convert it into a list of process names
-	var processNames []string
-	for _, process := range procList {
-		processNames = append(processNames, process.Executable())
-	}
+
+	// initial proc list
+	// not really nescessary
+	userSelection.processNames = initialProcessNames
 
 	// register the process selection input
-	procSelect := xwidget.NewCompletionEntry(processNames)
+	procSelect := xwidget.NewCompletionEntry(userSelection.processNames)
 
 	// update the process name suggestions on the fly
 	procSelect.OnChanged = func(s string) {
+		userSelection.processNames, err = ProcSnapshot()
+		if err != nil {
+			clog.Fatal(err)
+		}
 		matchingProcesses := []string{}
 		userSelection.SelectedProc = s // keep this here couse of case sensitivity
 		s = strings.ToLower(s)
-		for _, processName := range processNames {
+		for _, processName := range userSelection.processNames {
 			if strings.Contains(strings.ToLower(processName), s) {
 				matchingProcesses = append(matchingProcesses, processName)
 			}
@@ -98,6 +120,11 @@ func main() {
 		procSelect.ShowCompletion()
 		clog.Info(s)
 	}
+
+	// create the credits button
+	credits := widget.NewButtonWithIcon("Show credits", theme.InfoIcon(), func() {
+		CreditsWindow(fyne.CurrentApp(), fyne.NewSize(800, 400)).Show()
+	})
 
 	// register text displays
 	dllDisplay := widget.NewLabelWithStyle("Dll selected: ", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
@@ -156,6 +183,8 @@ func main() {
 			w.Close()
 			a.Quit()
 		}),
+		widget.NewSeparator(),
+		credits,
 	))
 
 	w.ShowAndRun()

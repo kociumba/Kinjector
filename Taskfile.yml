@@ -16,6 +16,7 @@ tasks:
     cmds:
       - fyne bundle -o bundled.go icon.png
       - fyne package -os windows -icon icon.png
+      # - signtool sign /sm /s My /n <certificateSubjectName> /t http://timestamp.digicert.com ${BINARY_NAME}
   bundle files for the app:
     cmds:
       - fyne bundle -o bundled.go Icon.png
