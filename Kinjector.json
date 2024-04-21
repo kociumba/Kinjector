@@ -23,7 +23,7 @@
     ],
     "installer": {
         "script": [
-            "task build -- $dir"
+            "task -taskfile $dir\\Taskfile.dist.yml build -- $dir"
         ]
     },
     "post_install": [
