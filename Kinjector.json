@@ -28,6 +28,15 @@
             "fyne package -os windows -icon icon.png"
         ]
     },
+    "post_install": [
+        "Write-Host 'Installation complete!' -ForegroundColor Green",
+        "$pattern = '*Kinjector*'",
+        "try {",
+        "    Get-ChildItem -Path $cachedir -Filter $pattern -File -Recurse | Remove-Item -Force",
+        "} catch {",
+        "    Write-Error 'Error encountered while trying to delete: $_'",
+        "}"
+    ],
     "bin": "Kinjector.exe",
     "hash": "",
     "url": "https://github.com/kociumba/kinjector/archive/refs/heads/main.zip"
