@@ -4,22 +4,22 @@
 dir ?= $(CURDIR)
 
 # Alias 'build' to perform all tasks
-build: cd $(dir) && go_get && fyne_install && fyne_bundle && fyne_package
+build: go_get fyne_install fyne_bundle fyne_package
 
 # Retrieve dependencies
 go_get:
-    go get -C $(dir) -d ./...
+	@cd $(dir) && go get -d ./...
 
 # Install Fyne command line tool
 fyne_install:
-    go install fyne.io/fyne/v2/cmd/fyne@latest
+	@cd $(dir) && go install fyne.io/fyne/v2/cmd/fyne@latest
 
 # Bundle assets
 fyne_bundle:
-    fyne bundle -o $(dir)/bundled.go $(dir)/icon.png
+	@cd $(dir) && fyne bundle -o bundled.go icon.png
 
 # Package the application
 fyne_package:
-    fyne package -os windows -icon $(dir)/icon.png
+	@cd $(dir) && fyne package -os windows -icon icon.png -src .
 
 .PHONY: build go_get fyne_install fyne_bundle fyne_package
