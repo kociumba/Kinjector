@@ -25,9 +25,9 @@ but for now all the necessary information is here.
 
 The recommended way to install Kinjector is via the [scoop install file](https://raw.githubusercontent.com/kociumba/Kinjector/main/Kinjector.json).  
 
-- download the [kinjector.json](https://raw.githubusercontent.com/kociumba/Kinjector/main/Kinjector.json) file and install [scoop](https://scoop.sh)
-- use `scoop install .\Kinjector.json` (make sure the `.\Kinjector.json` is a path to the file like ``C:\$HOME\Kinjector.json``)
-- to update Kinjector, use `scoop uininstall Kinjector` and again `scoop install .\Kinjector.json`
+- install the windows package manager [scoop](https://scoop.sh)
+- use `scoop install https://raw.githubusercontent.com/kociumba/Kinjector/main/Kinjector.json` to install Kinjector
+- to update Kinjector, use `scoop uininstall Kinjector` and again `scoop install https://raw.githubusercontent.com/kociumba/Kinjector/main/Kinjector.json`
 
 Alternatively you can always compile it from source 
 
