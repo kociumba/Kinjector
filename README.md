@@ -1,7 +1,7 @@
 # <p align="center">Welcome to</p>
 
 <p align="center">
-    <img src="kinjector.svg" alt="Ktool" title="ktool logo">
+    <img src="kinjector.svg" alt="Kinjector" title="kinjector logo">
 </p>
 
 ---
