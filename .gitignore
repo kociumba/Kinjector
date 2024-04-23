@@ -6,3 +6,4 @@ bundled.go
 /Taskfile.yml
 Taskfile.yml
 /.idea
+/log.txt

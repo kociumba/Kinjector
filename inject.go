@@ -43,14 +43,14 @@ func Inject(userSlection *UserSelection) error {
 	if _, err := os.Stat(dPath); errors.Is(err, os.ErrNotExist) {
 		return err
 	}
-	clog.Info(pId)
+	clog.Info("Selected process id: ", "pId", pId)
 
 	kernel32 := windows.NewLazyDLL("kernel32.dll")
 	pHandle, err := windows.OpenProcess(windows.PROCESS_CREATE_THREAD|windows.PROCESS_VM_OPERATION|windows.PROCESS_VM_WRITE|windows.PROCESS_VM_READ|windows.PROCESS_QUERY_INFORMATION, false, uint32(pId))
 	if err != nil {
 		return err
 	}
-	clog.Info("Process opened")
+	clog.Info("Selected process opened")
 
 	VirtualAllocEx := kernel32.NewProc("VirtualAllocEx")
 	vAlloc, _, err := VirtualAllocEx.Call(uintptr(pHandle), 0, uintptr(len(dPath)+1), windows.MEM_RESERVE|windows.MEM_COMMIT, windows.PAGE_EXECUTE_READWRITE)
@@ -69,7 +69,7 @@ func Inject(userSlection *UserSelection) error {
 	if err != nil {
 		return err
 	}
-	clog.Info("Memory written")
+	clog.Info("Allocated memory written")
 
 	LoadLibAddy, err := syscall.GetProcAddress(syscall.Handle(kernel32.Handle()), "LoadLibraryA")
 	if err != nil {
@@ -82,7 +82,7 @@ func Inject(userSlection *UserSelection) error {
 	}
 	defer syscall.CloseHandle(syscall.Handle(tHandle))
 	clog.Info("Thread created")
-	clog.Info("DLL injected successfully!")
+	clog.Info("DLL injected successfully into " + userSlection.SelectedProc + "!")
 
 	return nil
 }

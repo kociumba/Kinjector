@@ -27,6 +27,9 @@ type UserSelection struct {
 }
 
 func trimFilePath(path string) string {
+
+	clog.Info("Selected dll: " + path)
+
 	_, fileName := filepath.Split(path)
 	return fileName
 }
@@ -51,6 +54,17 @@ func main() {
 	userSelection := &UserSelection{}
 	appIcon := fyne.NewStaticResource(resourceIconPng.StaticName, resourceIconPng.StaticContent)
 
+	// set up logger output
+	f, err := os.OpenFile("log.txt", os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
+	if err != nil {
+		clog.Fatal(err)
+	}
+	defer f.Close()
+	f.WriteString("\n\n")
+	clog.SetOutput(f)
+
+	clog.Info("Starting dll injector...")
+
 	// app setup
 	a := app.New()
 	a.Settings().SetTheme(&injectorTheme{})
@@ -65,6 +79,7 @@ func main() {
 
 			// register the show window in tray menu
 			fyne.NewMenuItem("Show", func() {
+				clog.Info("Bringing window back out of system tray")
 				w.Show()
 			}),
 
@@ -84,6 +99,7 @@ func main() {
 
 	w.SetContent(widget.NewLabel("Fyne System Tray"))
 	w.SetCloseIntercept(func() {
+		clog.Info("Minimizing window into system tray")
 		w.Hide()
 	})
 
@@ -118,7 +134,15 @@ func main() {
 		}
 		procSelect.SetOptions(matchingProcesses)
 		procSelect.ShowCompletion()
-		clog.Info(s)
+
+		// log the user selection
+		for _, processName := range userSelection.processNames {
+			if processName == s {
+				clog.Info("Selected process: " + s)
+				break
+			}
+		}
+		// clog.Info(s)
 	}
 
 	// create the credits button
@@ -133,6 +157,7 @@ func main() {
 	// create the app layout
 	//
 	//
+	clog.Info("Creating GUI")
 	w.SetContent(container.NewVBox(
 
 		// process slection
@@ -187,5 +212,6 @@ func main() {
 		credits,
 	))
 
+	clog.Info("Running...")
 	w.ShowAndRun()
 }
