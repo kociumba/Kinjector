@@ -28,9 +28,10 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Required information (please complete the following information):**
+**Required information:**
  - Windows version: [e.g. Windows10 22H2]
  - Any errors thrown during installation
+ - Contetns of the `log.txt` file in `scoop/apps/kinjector` if the app crashes or does not work
 
 **Additional context**
 Add any other context about the problem here.
