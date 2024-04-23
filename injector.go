@@ -65,6 +65,9 @@ func main() {
 
 	clog.Info("Starting dll injector...")
 
+	// force the dark theme
+	os.Setenv("FYNE_THEME", "dark")
+
 	// app setup
 	a := app.New()
 	a.Settings().SetTheme(&injectorTheme{})

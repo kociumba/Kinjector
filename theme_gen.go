@@ -13,8 +13,10 @@ type injectorTheme struct{}
 
 func (injectorTheme) Color(c fyne.ThemeColorName, v fyne.ThemeVariant) color.Color {
 	switch c {
-	// case theme.ColorNameBackground:
-	// 	return color.NRGBA{R: 0x30, G: 0x30, B: 0x30, A: 0xff}
+	case theme.ColorNameBackground:
+		return color.NRGBA{R: 0x1C, G: 0x1C, B: 0x1C, A: 0xFF}
+	case theme.ColorNameOverlayBackground:
+		return color.NRGBA{R: 0x1C, G: 0x1C, B: 0x1C, A: 0xFF}
 	// case theme.ColorNameButton:
 	// 	return color.NRGBA{R: 0x43, G: 0x43, B: 0x43, A: 0xf9}
 	// case theme.ColorNameDisabledButton:
@@ -24,25 +26,35 @@ func (injectorTheme) Color(c fyne.ThemeColorName, v fyne.ThemeVariant) color.Col
 	case theme.ColorNameError:
 		return color.NRGBA{R: 0xf3, G: 0x12, B: 0x1, A: 0xff}
 	case theme.ColorNameFocus:
-		return color.NRGBA{R: 0xf3, G: 0x22, B: 0xcc, A: 0xbb}
+		return color.NRGBA{R: 0x92, G: 0xFF, B: 0x8F, A: 0xFF}
 	// case theme.ColorNameForeground:
 	// 	return color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}
 	// case theme.ColorNameHover:
 	// 	return color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xf}
-	// case theme.ColorNameInputBackground:
-	// 	return color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0x19}
+	case theme.ColorNameInputBackground:
+		return color.NRGBA{R: 0x1C, G: 0x1C, B: 0x1C, A: 0xFF}
 	// case theme.ColorNamePlaceHolder:
 	// 	return color.NRGBA{R: 0xb2, G: 0xb2, B: 0xb2, A: 0xff}
 	// case theme.ColorNamePressed:
 	// 	return color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0x66}
 	case theme.ColorNamePrimary:
-		return color.NRGBA{R: 0xf3, G: 0x22, B: 0xcc, A: 0xf6}
+		return color.NRGBA{R: 0x92, G: 0xFF, B: 0x8F, A: 0xFF}
+	case theme.ColorNameHeaderBackground:
+		return color.NRGBA{R: 0x1C, G: 0x1C, B: 0x1C, A: 0xFF}
 	// case theme.ColorNameScrollBar:
 	// 	return color.NRGBA{R: 0x0, G: 0x0, B: 0x0, A: 0x99}
 	// case theme.ColorNameShadow:
 	// 	return color.NRGBA{R: 0x8, G: 0x8, B: 0x8, A: 0x79}
 	// case theme.ColorNameSeparator:
 	// 	return color.RGBA{R: 0x26, G: 0x26, B: 0x26, A: 0xff}
+	case theme.ColorNameHyperlink:
+		return color.NRGBA{R: 0x92, G: 0xFF, B: 0x8F, A: 0xFF}
+	case theme.ColorNameMenuBackground:
+		return color.NRGBA{R: 0x1C, G: 0x1C, B: 0x1C, A: 0xFF}
+	case theme.ColorNameSelection:
+		return color.NRGBA{R: 0x92, G: 0xFF, B: 0x8F, A: 0x80}
+	// case theme.ColorNameForeground:
+	// 	return color.NRGBA{R: 0x1C, G: 0x1C, B: 0x1C, A: 0xFF}
 	default:
 		return theme.DefaultTheme().Color(c, v)
 	}
