@@ -31,6 +31,16 @@ The recommended way to install Kinjector is via the [scoop install file](https:/
 
 Alternatively you can always compile it from source 
 
+## Notes
+
+This program may be blocked by Microsoft Defender and other antiviruses as it accesses the list of running processes and the kernel32.dll api.
+
+Those things are required for the app to work and the only way to whitelist this app in antiviruses would be to sign it
+unfortunately I don't have a certificate, and it's not easy to get one.
+
+Another thing is that signing the app would require me to distribute the app in a compiled state which I don't plan on doing right now
+and the current method that compiles the app on the user system via scoop wouldn't be able to sign it.
+
 ### Credits
 
 This project uses [fyne](https://github.com/fyne-io/fyne) for it's GUI
