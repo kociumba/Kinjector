@@ -7,3 +7,4 @@ bundled.go
 Taskfile.yml
 /.idea
 /log.txt
+/old_icon.png
