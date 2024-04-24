@@ -55,7 +55,7 @@ func main() {
 	appIcon := fyne.NewStaticResource(resourceIconPng.StaticName, resourceIconPng.StaticContent)
 
 	// set up logger output
-	f, err := os.OpenFile("log.txt", os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
+	f, err := os.OpenFile("log.txt", os.O_CREATE|os.O_RDWR|os.O_APPEND, 0600)
 	if err != nil {
 		clog.Fatal(err)
 	}
