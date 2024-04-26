@@ -71,14 +71,14 @@ func main() {
 	// app setup
 	a := app.New()
 	a.Settings().SetTheme(&injectorTheme{})
-	w := a.NewWindow("dll injector")
+	w := a.NewWindow("Kinjector")
 	w.Resize(fyne.NewSize(500, 500))
 	w.CenterOnScreen()
 	w.SetIcon(appIcon)
 
 	// create the system tray menu
 	if desk, ok := a.(desktop.App); ok {
-		m := fyne.NewMenu("dll injector",
+		m := fyne.NewMenu("Kinjector",
 
 			// register the show window in tray menu
 			fyne.NewMenuItem("Show", func() {
