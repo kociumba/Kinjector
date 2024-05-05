@@ -53,9 +53,18 @@ func ProcSnapshot() ([]string, error) {
 func main() {
 	userSelection := &UserSelection{}
 	appIcon := fyne.NewStaticResource(resourceIconPng.StaticName, resourceIconPng.StaticContent)
+	pathToKinjector, err := os.Executable()
+	if err != nil {
+		clog.Fatal(err)
+	}
+
+	pathToKinjector, err = filepath.EvalSymlinks(pathToKinjector)
+	if err != nil {
+		clog.Fatal(err)
+	}
 
 	// set up logger output
-	f, err := os.OpenFile("log.txt", os.O_CREATE|os.O_RDWR|os.O_APPEND, 0600)
+	f, err := os.OpenFile(pathToKinjector+"/log.txt", os.O_CREATE|os.O_RDWR|os.O_APPEND, 0600)
 	if err != nil {
 		clog.Fatal(err)
 	}
