@@ -1,6 +1,7 @@
 // DLL Injector
 package main
 
+import "C"
 import (
 	"os"
 	"path/filepath"
@@ -203,6 +204,20 @@ func main() {
 				w,
 			).Show()
 		}),
+
+		// triggers the unloader
+		widget.NewSeparator(),
+		widget.NewButtonWithIcon("Unload", theme.CancelIcon(), func() {
+			err := Unloader(userSelection)
+			if err != nil {
+				dialog.NewError(err, w).Show()
+				// errorDisplay.SetText(err.Error())
+				clog.Warn(err)
+			} else {
+				dialog.NewInformation("Success", "Unloaded from "+userSelection.SelectedProc+" !", w).Show()
+			}
+		}),
+
 		// display injection status
 		// errorDisplay,
 		// quit button

@@ -14,13 +14,13 @@ import (
 //
 // Takes a UserSelection parameter containing the process name and DLL path to inject.
 // Returns an error if any operation fails.
-func Inject(userSlection *UserSelection) error {
+func Inject(userSelection *UserSelection) error {
 	// var dPath string
 	var _pId int
 	// var pName string
 
-	pName := userSlection.SelectedProc
-	dPath := userSlection.SelectedDll
+	pName := userSelection.SelectedProc
+	dPath := userSelection.SelectedDll
 	// flag.StringVar(&pName, "process", "", "Process name to inject to")
 	// flag.StringVar(&dPath, "dll", "", "DLL to inject")
 	// flag.Parse()
@@ -82,7 +82,7 @@ func Inject(userSlection *UserSelection) error {
 	}
 	defer syscall.CloseHandle(syscall.Handle(tHandle))
 	clog.Info("Thread created")
-	clog.Info("DLL injected successfully into " + userSlection.SelectedProc + "!")
+	clog.Info("DLL injected successfully into " + userSelection.SelectedProc + "!")
 
 	return nil
 }

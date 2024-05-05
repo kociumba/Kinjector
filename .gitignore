@@ -8,3 +8,4 @@ Taskfile.yml
 /.idea
 /log.txt
 /old_icon.png
+/cpp_components(does not compile)
