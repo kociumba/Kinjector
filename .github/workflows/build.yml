@@ -40,7 +40,7 @@ jobs:
 
       - name: Build windows/amd64
         run: |
-            task build VERSION="${GITHUB_REF#v}"
+            task build VERSION="${GITHUB_REF#refs/heads/main/v}"
 
       # Upload build assets
       - uses: actions/upload-artifact@v3
