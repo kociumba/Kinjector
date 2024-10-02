@@ -53,6 +53,6 @@ tasks:
   build:dll:no:gc:
     env:
       vars:
-      - GOGC=off
+        GOGC: off
     cmds:
     - go build -C "test dll" -ldflags="-s -w" -o bin/dllmain.dll -buildmode=c-shared
