@@ -40,7 +40,11 @@ jobs:
 
       - name: Build windows/amd64
         run: |
-            task build VERSION="${GITHUB_REF#refs/heads/main/v}"
+          if [[ "${GITHUB_REF#v}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            task build VERSION="${GITHUB_REF#v}"
+          else
+            task build
+          fi
 
       # Upload build assets
       - uses: actions/upload-artifact@v3
