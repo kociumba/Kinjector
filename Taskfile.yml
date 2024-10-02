@@ -1,0 +1,58 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  deps:install:
+    internal: true
+    cmds:
+    - go get -C ./ ./...
+    - go install fyne.io/fyne/v2/cmd/fyne@v2.5
+
+  pre:build:
+    internal: true
+    generates:
+    - bundled.go
+    sources:
+    - icon.png
+    cmds:
+    - fyne bundle -o bundled.go assets/icon.png
+
+  build:
+    vars:
+      VERSION: '{{.VERSION | default "0.0.0"}}'
+    generates:
+    - bin/Kinjector.exe
+    sources:
+    - '*.go'
+    cmds:
+    - task: deps:install
+    - task: pre:build
+    - fyne package -os windows -icon assets/icon.png -name Kinjector.exe --tags 'ldflags=-s -w' -appVersion {{.VERSION}}
+    - task: find:and:move:bin
+
+  # bugged couse fyne is a piece of shit and assumes every one has a cert to sign release version
+  build:release:
+    vars:
+      VERSION: '{{.VERSION | default "0.0.0"}}'
+    generates:
+    - bin/Kinjector.exe
+    sources:
+    - '*.go'
+    cmds:
+    - task: deps:install
+    - task: pre:build
+    - fyne release -os windows -icon assets/icon.png -name Kinjector.exe -appVersion {{.VERSION}} -developer kociumba -certificate ' ' -password ' '
+    - task: find:and:move:bin
+
+  find:and:move:bin:
+    internal: true
+    cmds:
+    - '{{if eq OS "windows"}}cmd /c move {{else}}mv {{end}}./Kinjector.exe ./bin/Kinjector.exe'
+
+  build:dll:no:gc:
+    env:
+      vars:
+      - GOGC=off
+    cmds:
+    - go build -C "test dll" -ldflags="-s -w" -o bin/dllmain.dll -buildmode=c-shared

@@ -1,13 +1,11 @@
 /example dll
-dll injector.exe
-bundled.go
-/Kinjector.exe
 /Kinjector.zip
-/Taskfile.yml
-Taskfile.yml
 /.idea
 /log.txt
 /old_icon.png
 /cpp_components/*
 /cpp_components(does not compile)
 /cpp_components
+/test dll
+notes.md
+*.exe

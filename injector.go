@@ -2,6 +2,7 @@
 package main
 
 import (
+	"flag"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,6 +26,10 @@ type UserSelection struct {
 	DllFile      string
 	processNames []string
 }
+
+var (
+	dbg = flag.Bool("dbg", false, "")
+)
 
 func trimFilePath(path string) string {
 
@@ -51,6 +56,8 @@ func ProcSnapshot() ([]string, error) {
 }
 
 func main() {
+	flag.Parse()
+
 	userSelection := &UserSelection{}
 	appIcon := fyne.NewStaticResource(resourceIconPng.StaticName, resourceIconPng.StaticContent)
 	pathToKinjector, err := os.Executable()
@@ -63,14 +70,20 @@ func main() {
 		clog.Fatal(err)
 	}
 
-	// set up logger output
-	f, err := os.OpenFile(pathToKinjector+"/log.txt", os.O_CREATE|os.O_RDWR|os.O_APPEND, 0600)
-	if err != nil {
-		clog.Fatal(err)
+	if *dbg {
+		clog.SetLevel(clog.DebugLevel)
 	}
-	defer f.Close()
-	f.WriteString("\n\n")
-	clog.SetOutput(f)
+
+	// set up logger output
+	// f, err := os.OpenFile(pathToKinjector+"/log.txt", os.O_CREATE|os.O_RDWR|os.O_APPEND, 0600)
+	// if err != nil {
+	// 	clog.Fatal(err)
+	// }
+	// defer f.Close()
+	// f.WriteString("\n\n")
+
+	// Turn off file logging couse i don't wanna deal with it
+	// clog.SetOutput(f)
 
 	clog.Info("Starting dll injector...")
 
@@ -79,11 +92,23 @@ func main() {
 
 	// app setup
 	a := app.New()
+	clog.Debug("app created")
+
 	a.Settings().SetTheme(&injectorTheme{})
+	clog.Debug("app theme set")
+
 	w := a.NewWindow("Kinjector")
+
+	w.SetFixedSize(true)
+
 	w.Resize(fyne.NewSize(500, 500))
+	clog.Debug("app window created and resized to 500x500")
+
 	w.CenterOnScreen()
+	clog.Debug("app window centered on screen")
+
 	w.SetIcon(appIcon)
+	clog.Debug("app window icon set")
 
 	// create the system tray menu
 	if desk, ok := a.(desktop.App); ok {
@@ -109,7 +134,7 @@ func main() {
 		desk.SetSystemTrayIcon(appIcon)
 	}
 
-	w.SetContent(widget.NewLabel("Fyne System Tray"))
+	w.SetContent(widget.NewLabel("Kinjector System Tray"))
 	w.SetCloseIntercept(func() {
 		clog.Info("Minimizing window into system tray")
 		w.Hide()
@@ -166,6 +191,8 @@ func main() {
 	dllDisplay := widget.NewLabelWithStyle("Dll selected: ", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	// errorDisplay := widget.NewLabelWithStyle("", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 
+	injection := widget.NewActivity()
+
 	// create the app layout
 	//
 	//
@@ -199,13 +226,16 @@ func main() {
 				func(b bool) {
 					if b {
 						err := Inject(userSelection)
+						injection.Start()
 						if err != nil {
 							dialog.NewError(err, w).Show()
 							// errorDisplay.SetText(err.Error())
 							clog.Warn(err)
+							injection.Stop()
 						} else {
 							dialog.NewInformation("Success", "Injected into "+userSelection.SelectedProc+" !", w).Show()
 							// errorDisplay.SetText("Injected into " + userSelection.SelectedProc + " !")
+							injection.Stop()
 						}
 					}
 				},
