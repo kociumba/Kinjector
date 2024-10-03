@@ -14,7 +14,7 @@ jobs:
       matrix:
         build: [
         #   {name: Kinjector, platform: linux/amd64, os: ubuntu-latest},
-          {name: Kinjector, os: ubuntu-latest},
+          {name: Kinjector, os: windows-latest},
         #   {name: Kinjector, platform: darwin/universal, os: macos-latest}
         ]
     runs-on: ${{ matrix.build.os }}
