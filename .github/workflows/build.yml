@@ -63,5 +63,5 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
           files: |
-            */bin/Kinjector.exe
+            **/*/Kinjector.exe
           generate_release_notes: true
