@@ -57,6 +57,7 @@ type UserSelection struct {
 	DllFile      string
 	processNames []string
 	Profiles     []InjectionProfile
+	UnsafeUnload bool
 }
 
 func (u *UserSelection) SaveProfile(name string) error {
@@ -155,6 +156,16 @@ func ProcSnapshot() ([]string, error) {
 	return processNames, err
 }
 
+func performUnload(userSelection *UserSelection, w fyne.Window) {
+	err := Unloader(userSelection)
+	if err != nil {
+		dialog.NewError(err, w).Show()
+		clog.Warn(err)
+	} else {
+		dialog.NewInformation("Success", "Unloaded from "+userSelection.SelectedProc+" !", w).Show()
+	}
+}
+
 func main() {
 	flag.Parse()
 
@@ -177,6 +188,8 @@ func main() {
 	if *dbg {
 		clog.SetLevel(clog.DebugLevel)
 	}
+
+	clog.SetReportCaller(true)
 
 	// set up logger output
 	// f, err := os.OpenFile(pathToKinjector+"/log.txt", os.O_CREATE|os.O_RDWR|os.O_APPEND, 0600)
@@ -302,6 +315,29 @@ func main() {
 	profileName := widget.NewEntry()
 	profileName.SetPlaceHolder("Profile Name")
 
+	// Create the unsafe unload checkbox
+	unsafeUnloadCheck := widget.NewCheck("Unsafe Unload (Use with caution)", func(checked bool) {
+		userSelection.UnsafeUnload = checked
+	})
+
+	// Create the unload button with confirmation dialog
+	unloadButton := widget.NewButtonWithIcon("Unload", theme.CancelIcon(), func() {
+		if userSelection.UnsafeUnload {
+			dialog.NewConfirm(
+				"Unsafe Unload",
+				"Warning: Unsafe unload may cause memory leaks or crash the target process. Proceed?",
+				func(confirm bool) {
+					if confirm {
+						performUnload(userSelection, w)
+					}
+				},
+				w,
+			).Show()
+		} else {
+			performUnload(userSelection, w)
+		}
+	})
+
 	// create the app layout
 	//
 	//
@@ -317,7 +353,7 @@ func main() {
 			dllDisplay.SetText("Dll selected: " + userSelection.DllFile)
 		}),
 		dllDisplay,
-		widget.NewSeparator(),
+		// widget.NewSeparator(),
 		widget.NewButtonWithIcon("Inject", theme.ConfirmIcon(), func() {
 			dialog.NewConfirm(
 				"Inject ?",
@@ -339,6 +375,11 @@ func main() {
 				w,
 			).Show()
 		}),
+		// triggers the unloader
+		// widget.NewSeparator(),
+		widget.NewSeparator(),
+		unsafeUnloadCheck,
+		unloadButton,
 	)
 
 	// Create the profile management tab
