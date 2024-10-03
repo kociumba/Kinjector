@@ -321,43 +321,91 @@ func main() {
 	})
 
 	// Create the unload button with confirmation dialog
-	unloadButton := widget.NewButtonWithIcon("Unload", theme.CancelIcon(), func() {
-		if userSelection.UnsafeUnload {
-			dialog.NewConfirm(
-				"Unsafe Unload",
-				"Warning: Unsafe unload may cause memory leaks or crash the target process. Proceed?",
-				func(confirm bool) {
-					if confirm {
-						performUnload(userSelection, w)
-					}
-				},
-				w,
-			).Show()
+	// unloadButton := widget.NewButtonWithIcon("Unload", theme.CancelIcon(), func() {
+	// 	if userSelection.UnsafeUnload {
+	// 		dialog.NewConfirm(
+	// 			"Unsafe Unload",
+	// 			"Warning: Unsafe unload may cause memory leaks or crash the target process. Proceed?",
+	// 			func(confirm bool) {
+	// 				if confirm {
+	// 					performUnload(userSelection, w)
+	// 				}
+	// 			},
+	// 			w,
+	// 		).Show()
+	// 	} else {
+	// 		performUnload(userSelection, w)
+	// 	}
+	// })
+
+	// // create the app layout
+	// //
+	// //
+	// clog.Info("Creating GUI")
+	// // Create the main injection tab
+	// injectionTab := container.NewVBox(
+	// 	widget.NewLabelWithStyle("Select the process to inject: ", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+	// 	procSelect,
+	// 	widget.NewSeparator(),
+	// 	widget.NewButtonWithIcon("Select dll to load", theme.FolderOpenIcon(), func() {
+	// 		userSelection.SelectedDll, err = zenity.SelectFile(zenity.Filename(os.ExpandEnv("$HOME")), zenity.FileFilter{Patterns: []string{"*.dll"}})
+	// 		userSelection.DllFile = trimFilePath(userSelection.SelectedDll)
+	// 		dllDisplay.SetText("Dll selected: " + userSelection.DllFile)
+	// 	}),
+	// 	dllDisplay,
+	// 	// widget.NewSeparator(),
+	// 	widget.NewButtonWithIcon("Inject", theme.ConfirmIcon(), func() {
+	// 		dialog.NewConfirm(
+	// 			"Inject ?",
+	// 			"Inject "+userSelection.SelectedProc+" with "+userSelection.DllFile+" ?",
+	// 			func(b bool) {
+	// 				if b {
+	// 					err := Inject(userSelection)
+	// 					injection.Start()
+	// 					if err != nil {
+	// 						dialog.NewError(err, w).Show()
+	// 						clog.Warn(err)
+	// 						injection.Stop()
+	// 					} else {
+	// 						dialog.NewInformation("Success", "Injected into "+userSelection.SelectedProc+" !", w).Show()
+	// 						injection.Stop()
+	// 					}
+	// 				}
+	// 			},
+	// 			w,
+	// 		).Show()
+	// 	}),
+	// 	// triggers the unloader
+	// 	// widget.NewSeparator(),
+	// 	widget.NewSeparator(),
+	// 	unsafeUnloadCheck,
+	// 	unloadButton,
+	// )
+
+	// Damn this shit stupid
+	selectDllButton := widget.NewButton("", func() {})
+
+	selectDllButton = widget.NewButton("Select DLL", func() {
+		userSelection.SelectedDll, err = zenity.SelectFile(zenity.Filename(os.ExpandEnv("$HOME")), zenity.FileFilter{Patterns: []string{"*.dll"}})
+		userSelection.DllFile = trimFilePath(userSelection.SelectedDll)
+		if userSelection.DllFile != "" {
+			selectDllButton.SetText("DLL: " + userSelection.DllFile)
 		} else {
-			performUnload(userSelection, w)
+			selectDllButton.SetText("Select DLL")
 		}
 	})
 
-	// create the app layout
-	//
-	//
-	clog.Info("Creating GUI")
-	// Create the main injection tab
-	injectionTab := container.NewVBox(
-		widget.NewLabelWithStyle("Select the process to inject: ", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-		procSelect,
-		widget.NewSeparator(),
-		widget.NewButtonWithIcon("Select dll to load", theme.FolderOpenIcon(), func() {
-			userSelection.SelectedDll, err = zenity.SelectFile(zenity.Filename(os.ExpandEnv("$HOME")), zenity.FileFilter{Patterns: []string{"*.dll"}})
-			userSelection.DllFile = trimFilePath(userSelection.SelectedDll)
-			dllDisplay.SetText("Dll selected: " + userSelection.DllFile)
-		}),
-		dllDisplay,
-		// widget.NewSeparator(),
-		widget.NewButtonWithIcon("Inject", theme.ConfirmIcon(), func() {
+	// Create the main injection form
+	injectionForm := &widget.Form{
+		Items: []*widget.FormItem{
+			{Text: "Select process", Widget: procSelect},
+			{Text: "Select DLL", Widget: selectDllButton},
+			{Text: "Unsafe Unload", Widget: unsafeUnloadCheck},
+		},
+		OnSubmit: func() {
 			dialog.NewConfirm(
 				"Inject ?",
-				"Inject "+userSelection.SelectedProc+" with "+userSelection.DllFile+" ?",
+				fmt.Sprintf("Inject %s with %s ?", userSelection.SelectedProc, userSelection.DllFile),
 				func(b bool) {
 					if b {
 						err := Inject(userSelection)
@@ -374,12 +422,30 @@ func main() {
 				},
 				w,
 			).Show()
-		}),
-		// triggers the unloader
-		// widget.NewSeparator(),
-		widget.NewSeparator(),
-		unsafeUnloadCheck,
-		unloadButton,
+		},
+		OnCancel: func() {
+			if userSelection.UnsafeUnload {
+				dialog.NewConfirm(
+					"Unsafe Unload",
+					"Warning: Unsafe unload may cause memory leaks or crash the target process. Proceed?",
+					func(confirm bool) {
+						if confirm {
+							performUnload(userSelection, w)
+						}
+					},
+					w,
+				).Show()
+			} else {
+				performUnload(userSelection, w)
+			}
+		},
+		SubmitText: "Inject",
+		CancelText: "Unload",
+	}
+
+	injectionTab := container.NewVBox(
+		widget.NewLabelWithStyle("Manage Injection", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+		injectionForm,
 	)
 
 	// Create the profile management tab
@@ -394,6 +460,7 @@ func main() {
 			suppressSuggestions = true
 			procSelect.SetText(userSelection.SelectedProc)
 			dllDisplay.SetText("Dll selected: " + userSelection.DllFile)
+			selectDllButton.SetText("DLL: " + userSelection.DllFile)
 			dialog.ShowInformation("Loaded profile", "Profile "+userSelection.SelectedProc+" loaded successfully", w)
 		}
 	})
@@ -406,55 +473,106 @@ func main() {
 		loadProfileSelect.Options = names
 	}
 
-	saveProfileButton := widget.NewButtonWithIcon("Save Profile", theme.DocumentSaveIcon(), func() {
-		if profileName.Text != "" {
-			err := userSelection.SaveProfile(profileName.Text)
-			if err != nil {
-				dialog.ShowError(err, w)
-			} else {
-				dialog.ShowInformation("Success", "Profile saved", w)
-				updateProfileList()
-			}
-		} else {
-			dialog.ShowInformation("Error", "Please enter a profile name", w)
-		}
-	})
-
-	deleteProfileButton := widget.NewButtonWithIcon("Delete Profile", theme.DeleteIcon(), func() {
-		if loadProfileSelect.Selected == "" {
-			dialog.ShowInformation("Error", "Please select a profile to delete", w)
-			return
-		}
-		dialog.NewConfirm(
-			"Delete Profile",
-			"Are you sure you want to delete the profile '"+loadProfileSelect.Selected+"'?",
-			func(confirm bool) {
-				if confirm {
-					err := userSelection.DeleteProfile(loadProfileSelect.Selected)
-					if err != nil {
-						dialog.ShowError(err, w)
-					} else {
-						dialog.ShowInformation("Success", "Profile deleted", w)
-						updateProfileList()
-						loadProfileSelect.SetSelected("")
-					}
+	profileForm := &widget.Form{
+		Items: []*widget.FormItem{
+			{Text: "Profile Name", Widget: profileName},
+			{Text: "Load Profile", Widget: loadProfileSelect},
+		},
+		OnSubmit: func() {
+			if profileName.Text != "" {
+				err := userSelection.SaveProfile(profileName.Text)
+				if err != nil {
+					dialog.ShowError(err, w)
+				} else {
+					dialog.ShowInformation("Success", "Profile saved", w)
+					updateProfileList()
+					profileName.SetText("") // Clear the profile name entry after saving
 				}
-			},
-			w,
-		).Show()
-	})
+			} else {
+				dialog.ShowInformation("Error", "Please enter a profile name", w)
+			}
+		},
+		OnCancel: func() {
+			if loadProfileSelect.Selected == "" {
+				dialog.ShowInformation("Error", "Please select a profile to delete", w)
+				return
+			}
+			dialog.NewConfirm(
+				"Delete Profile",
+				"Are you sure you want to delete the profile '"+loadProfileSelect.Selected+"'?",
+				func(confirm bool) {
+					if confirm {
+						err := userSelection.DeleteProfile(loadProfileSelect.Selected)
+						if err != nil {
+							dialog.ShowError(err, w)
+						} else {
+							dialog.ShowInformation("Success", "Profile deleted", w)
+							updateProfileList()
+							loadProfileSelect.SetSelected("")
+						}
+					}
+				},
+				w,
+			).Show()
+		},
+		SubmitText: "Save Profile",
+		CancelText: "Delete Profile",
+	}
+
+	// saveProfileButton := widget.NewButtonWithIcon("Save Profile", theme.DocumentSaveIcon(), func() {
+	// 	if profileName.Text != "" {
+	// 		err := userSelection.SaveProfile(profileName.Text)
+	// 		if err != nil {
+	// 			dialog.ShowError(err, w)
+	// 		} else {
+	// 			dialog.ShowInformation("Success", "Profile saved", w)
+	// 			updateProfileList()
+	// 		}
+	// 	} else {
+	// 		dialog.ShowInformation("Error", "Please enter a profile name", w)
+	// 	}
+	// })
+
+	// deleteProfileButton := widget.NewButtonWithIcon("Delete Profile", theme.DeleteIcon(), func() {
+	// 	if loadProfileSelect.Selected == "" {
+	// 		dialog.ShowInformation("Error", "Please select a profile to delete", w)
+	// 		return
+	// 	}
+	// 	dialog.NewConfirm(
+	// 		"Delete Profile",
+	// 		"Are you sure you want to delete the profile '"+loadProfileSelect.Selected+"'?",
+	// 		func(confirm bool) {
+	// 			if confirm {
+	// 				err := userSelection.DeleteProfile(loadProfileSelect.Selected)
+	// 				if err != nil {
+	// 					dialog.ShowError(err, w)
+	// 				} else {
+	// 					dialog.ShowInformation("Success", "Profile deleted", w)
+	// 					updateProfileList()
+	// 					loadProfileSelect.SetSelected("")
+	// 				}
+	// 			}
+	// 		},
+	// 		w,
+	// 	).Show()
+	// })
 
 	updateProfileList()
 
 	profileTab := container.NewVBox(
 		widget.NewLabelWithStyle("Profile Management", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-		profileName,
-		saveProfileButton,
-		widget.NewSeparator(),
-		widget.NewLabel("Load Profile:"),
-		loadProfileSelect,
-		deleteProfileButton,
+		profileForm,
 	)
+
+	// profileTab := container.NewVBox(
+	// 	widget.NewLabelWithStyle("Profile Management", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+	// 	profileName,
+	// 	saveProfileButton,
+	// 	widget.NewSeparator(),
+	// 	widget.NewLabel("Load Profile:"),
+	// 	loadProfileSelect,
+	// 	deleteProfileButton,
+	// )
 
 	// Create tabs
 	tabs := container.NewAppTabs(

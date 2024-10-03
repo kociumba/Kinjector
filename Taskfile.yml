@@ -20,7 +20,8 @@ tasks:
 
   build:
     vars:
-      VERSION: '{{.VERSION | default "0.0.0"}}'
+      VERSION:
+        sh: powershell -Command "(git describe --tags --abbrev=0) -replace '^v',''"
     generates:
     - bin/Kinjector.exe
     sources:
@@ -49,6 +50,16 @@ tasks:
     internal: true
     cmds:
     - '{{if eq OS "windows"}}cmd /c move {{else}}mv {{end}}./Kinjector.exe ./bin/Kinjector.exe'
+
+  dev:build:refresh:
+    watch: true
+    sources:
+    - '*.go'
+    cmds:
+    - |
+      tasklist /FI "IMAGENAME eq kinjector.exe" | findstr /I kinjector.exe && taskkill /IM kinjector.exe /F || echo "kinjector.exe not running"
+    - go build
+    - cmd /c kinjector.exe
 
 # this is fucking up in gh actions and isn't needed
 # build:dll:no:gc:
