@@ -34,9 +34,8 @@ jobs:
           node-version: '16'
 
       - name: Setup go-task
-        uses: pnorton5432/setup-task@v1
-        with:
-          task-version: 3.29.1
+        run: |
+          winget install Task.Task
 
       - name: Build windows/amd64
         shell: bash
