@@ -28,7 +28,7 @@ tasks:
     cmds:
     - task: deps:install
     - task: pre:build
-    - fyne package -os windows -icon assets/icon.png -name Kinjector.exe --tags 'ldflags=-s -w' -appVersion {{.VERSION}}
+    - fyne package -os windows -icon assets/icon.png -name Kinjector --tags 'ldflags=-s -w' -appVersion {{.VERSION}}
     - task: find:and:move:bin
 
   # bugged couse fyne is a piece of shit and assumes every one has a cert to sign release version
@@ -42,7 +42,7 @@ tasks:
     cmds:
     - task: deps:install
     - task: pre:build
-    - fyne release -os windows -icon assets/icon.png -name Kinjector.exe -appVersion {{.VERSION}} -developer kociumba -certificate ' ' -password ' '
+    - fyne release -os windows -icon assets/icon.png -name Kinjector -appVersion {{.VERSION}} -developer kociumba -certificate ' ' -password ' '
     - task: find:and:move:bin
 
   find:and:move:bin:

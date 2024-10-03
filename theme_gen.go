@@ -26,7 +26,7 @@ func (injectorTheme) Color(c fyne.ThemeColorName, v fyne.ThemeVariant) color.Col
 	case theme.ColorNameError:
 		return color.NRGBA{R: 0xf3, G: 0x12, B: 0x1, A: 0xff}
 	case theme.ColorNameFocus:
-		return color.NRGBA{R: 0x92, G: 0xFF, B: 0x8F, A: 0xFF}
+		return color.NRGBA{R: 0x53, G: 0x9C, B: 0x33, A: 0xFF} // Replaced with #539c33
 	// case theme.ColorNameForeground:
 	// 	return color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}
 	// case theme.ColorNameHover:
@@ -38,7 +38,7 @@ func (injectorTheme) Color(c fyne.ThemeColorName, v fyne.ThemeVariant) color.Col
 	// case theme.ColorNamePressed:
 	// 	return color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0x66}
 	case theme.ColorNamePrimary:
-		return color.NRGBA{R: 0x92, G: 0xFF, B: 0x8F, A: 0xFF}
+		return color.NRGBA{R: 0x53, G: 0x9C, B: 0x33, A: 0xFF} // Replaced with #539c33
 	case theme.ColorNameHeaderBackground:
 		return color.NRGBA{R: 0x1C, G: 0x1C, B: 0x1C, A: 0xFF}
 	// case theme.ColorNameScrollBar:
@@ -48,11 +48,11 @@ func (injectorTheme) Color(c fyne.ThemeColorName, v fyne.ThemeVariant) color.Col
 	// case theme.ColorNameSeparator:
 	// 	return color.RGBA{R: 0x26, G: 0x26, B: 0x26, A: 0xff}
 	case theme.ColorNameHyperlink:
-		return color.NRGBA{R: 0x92, G: 0xFF, B: 0x8F, A: 0xFF}
+		return color.NRGBA{R: 0x53, G: 0x9C, B: 0x33, A: 0xFF} // Replaced with #539c33
 	case theme.ColorNameMenuBackground:
 		return color.NRGBA{R: 0x1C, G: 0x1C, B: 0x1C, A: 0xFF}
 	case theme.ColorNameSelection:
-		return color.NRGBA{R: 0x92, G: 0xFF, B: 0x8F, A: 0x80}
+		return color.NRGBA{R: 0x53, G: 0x9C, B: 0x33, A: 0x80} // Replaced with #539c33 (semi-transparent)
 	// case theme.ColorNameForeground:
 	// 	return color.NRGBA{R: 0x1C, G: 0x1C, B: 0x1C, A: 0xFF}
 	default:

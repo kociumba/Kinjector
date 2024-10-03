@@ -2,7 +2,9 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,16 +22,114 @@ import (
 	"github.com/ncruces/zenity"
 )
 
+var (
+	dbg = flag.Bool("dbg", false, "")
+
+	configDIr  string
+	configFIle string
+)
+
+func init() {
+	d, err := os.UserConfigDir()
+	if err != nil {
+		clog.Fatal(err)
+	}
+
+	configDIr = filepath.Join(d, "kinjector")
+	configFIle = filepath.Join(configDIr, "config.json")
+
+	err = os.MkdirAll(configDIr, 0755)
+	if err != nil {
+		clog.Fatal(err)
+	}
+}
+
+type InjectionProfile struct {
+	Name         string `json:"name"`
+	SelectedProc string `json:"selectedProc"`
+	SelectedDll  string `json:"selectedDll"`
+	DllFile      string `json:"dllFile"`
+}
+
 type UserSelection struct {
 	SelectedProc string
 	SelectedDll  string
 	DllFile      string
 	processNames []string
+	Profiles     []InjectionProfile
 }
 
-var (
-	dbg = flag.Bool("dbg", false, "")
-)
+func (u *UserSelection) SaveProfile(name string) error {
+	profile := InjectionProfile{
+		Name:         name,
+		SelectedProc: u.SelectedProc,
+		SelectedDll:  u.SelectedDll,
+		DllFile:      u.DllFile,
+	}
+
+	u.Profiles = append(u.Profiles, profile)
+	return u.saveProfilesToFile()
+}
+
+func (u *UserSelection) LoadProfile(name string) error {
+	for _, profile := range u.Profiles {
+		if profile.Name == name {
+			u.SelectedProc = profile.SelectedProc
+			u.SelectedDll = profile.SelectedDll
+			u.DllFile = profile.DllFile
+			return nil
+		}
+	}
+	return fmt.Errorf("profile not found")
+}
+
+func (u *UserSelection) saveProfilesToFile() error {
+	data, err := json.Marshal(u.Profiles)
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(configFIle, data, 0644)
+	if err != nil {
+		return err
+	}
+
+	// err = u.loadProfilesFromFile()
+	// if err != nil {
+	// 	return err
+	// }
+
+	return nil
+}
+
+func (u *UserSelection) loadProfilesFromFile() error {
+	data, err := os.ReadFile(configFIle)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// File doesn't exist, which is fine for first run
+			return nil
+		}
+		return err
+	}
+
+	err = json.Unmarshal(data, &u.Profiles)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *UserSelection) DeleteProfile(name string) error {
+	for i, profile := range u.Profiles {
+		if profile.Name == name {
+			// Remove the profile from the slice
+			u.Profiles = append(u.Profiles[:i], u.Profiles[i+1:]...)
+			return u.saveProfilesToFile()
+		}
+	}
+	return fmt.Errorf("profile not found")
+}
 
 func trimFilePath(path string) string {
 
@@ -59,16 +159,20 @@ func main() {
 	flag.Parse()
 
 	userSelection := &UserSelection{}
+	err := userSelection.loadProfilesFromFile()
+	if err != nil {
+		clog.Warn("Failed to load profiles:", err)
+	}
 	appIcon := fyne.NewStaticResource(resourceIconPng.StaticName, resourceIconPng.StaticContent)
-	pathToKinjector, err := os.Executable()
-	if err != nil {
-		clog.Fatal(err)
-	}
+	// pathToKinjector, err := os.Executable()
+	// if err != nil {
+	// 	clog.Fatal(err)
+	// }
 
-	pathToKinjector, err = filepath.EvalSymlinks(pathToKinjector)
-	if err != nil {
-		clog.Fatal(err)
-	}
+	// pathToKinjector, err = filepath.EvalSymlinks(pathToKinjector)
+	// if err != nil {
+	// 	clog.Fatal(err)
+	// }
 
 	if *dbg {
 		clog.SetLevel(clog.DebugLevel)
@@ -154,32 +258,34 @@ func main() {
 
 	// register the process selection input
 	procSelect := xwidget.NewCompletionEntry(userSelection.processNames)
+	var suppressSuggestions bool
 
-	// update the process name suggestions on the fly
 	procSelect.OnChanged = func(s string) {
-		userSelection.processNames, err = ProcSnapshot()
-		if err != nil {
-			clog.Fatal(err)
-		}
-		matchingProcesses := []string{}
-		userSelection.SelectedProc = s // keep this here couse of case sensitivity
-		s = strings.ToLower(s)
-		for _, processName := range userSelection.processNames {
-			if strings.Contains(strings.ToLower(processName), s) {
-				matchingProcesses = append(matchingProcesses, processName)
+		if !suppressSuggestions {
+			userSelection.processNames, err = ProcSnapshot()
+			if err != nil {
+				clog.Fatal(err)
 			}
-		}
-		procSelect.SetOptions(matchingProcesses)
-		procSelect.ShowCompletion()
+			matchingProcesses := []string{}
+			userSelection.SelectedProc = s // keep this here because of case sensitivity
+			s = strings.ToLower(s)
+			for _, processName := range userSelection.processNames {
+				if strings.Contains(strings.ToLower(processName), s) {
+					matchingProcesses = append(matchingProcesses, processName)
+				}
+			}
+			procSelect.SetOptions(matchingProcesses)
+			procSelect.ShowCompletion()
 
-		// log the user selection
-		for _, processName := range userSelection.processNames {
-			if processName == s {
-				clog.Info("Selected process: " + s)
-				break
+			// log the user selection
+			for _, processName := range userSelection.processNames {
+				if processName == s {
+					clog.Info("Selected process: " + s)
+					break
+				}
 			}
 		}
-		// clog.Info(s)
+		suppressSuggestions = false
 	}
 
 	// create the credits button
@@ -193,32 +299,25 @@ func main() {
 
 	injection := widget.NewActivity()
 
+	profileName := widget.NewEntry()
+	profileName.SetPlaceHolder("Profile Name")
+
 	// create the app layout
 	//
 	//
 	clog.Info("Creating GUI")
-	w.SetContent(container.NewVBox(
-
-		// process slection
+	// Create the main injection tab
+	injectionTab := container.NewVBox(
 		widget.NewLabelWithStyle("Select the process to inject: ", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		procSelect,
 		widget.NewSeparator(),
-
-		// dll selection
 		widget.NewButtonWithIcon("Select dll to load", theme.FolderOpenIcon(), func() {
 			userSelection.SelectedDll, err = zenity.SelectFile(zenity.Filename(os.ExpandEnv("$HOME")), zenity.FileFilter{Patterns: []string{"*.dll"}})
 			userSelection.DllFile = trimFilePath(userSelection.SelectedDll)
-			// if err != nil {
-			// 	zenity.Error(err.Error())
-			// }
 			dllDisplay.SetText("Dll selected: " + userSelection.DllFile)
 		}),
-
-		// display the sleected dll
 		dllDisplay,
 		widget.NewSeparator(),
-
-		// triggers the injection
 		widget.NewButtonWithIcon("Inject", theme.ConfirmIcon(), func() {
 			dialog.NewConfirm(
 				"Inject ?",
@@ -229,12 +328,10 @@ func main() {
 						injection.Start()
 						if err != nil {
 							dialog.NewError(err, w).Show()
-							// errorDisplay.SetText(err.Error())
 							clog.Warn(err)
 							injection.Stop()
 						} else {
 							dialog.NewInformation("Success", "Injected into "+userSelection.SelectedProc+" !", w).Show()
-							// errorDisplay.SetText("Injected into " + userSelection.SelectedProc + " !")
 							injection.Stop()
 						}
 					}
@@ -242,17 +339,105 @@ func main() {
 				w,
 			).Show()
 		}),
-		// display injection status
-		// errorDisplay,
-		// quit button
+	)
+
+	// Create the profile management tab
+	profileName = widget.NewEntry()
+	profileName.SetPlaceHolder("Profile Name")
+
+	loadProfileSelect := widget.NewSelect([]string{}, func(name string) {
+		err := userSelection.LoadProfile(name)
+		if err != nil {
+			dialog.ShowError(err, w)
+		} else {
+			suppressSuggestions = true
+			procSelect.SetText(userSelection.SelectedProc)
+			dllDisplay.SetText("Dll selected: " + userSelection.DllFile)
+			dialog.ShowInformation("Loaded profile", "Profile "+userSelection.SelectedProc+" loaded successfully", w)
+		}
+	})
+
+	updateProfileList := func() {
+		var names []string
+		for _, profile := range userSelection.Profiles {
+			names = append(names, profile.Name)
+		}
+		loadProfileSelect.Options = names
+	}
+
+	saveProfileButton := widget.NewButtonWithIcon("Save Profile", theme.DocumentSaveIcon(), func() {
+		if profileName.Text != "" {
+			err := userSelection.SaveProfile(profileName.Text)
+			if err != nil {
+				dialog.ShowError(err, w)
+			} else {
+				dialog.ShowInformation("Success", "Profile saved", w)
+				updateProfileList()
+			}
+		} else {
+			dialog.ShowInformation("Error", "Please enter a profile name", w)
+		}
+	})
+
+	deleteProfileButton := widget.NewButtonWithIcon("Delete Profile", theme.DeleteIcon(), func() {
+		if loadProfileSelect.Selected == "" {
+			dialog.ShowInformation("Error", "Please select a profile to delete", w)
+			return
+		}
+		dialog.NewConfirm(
+			"Delete Profile",
+			"Are you sure you want to delete the profile '"+loadProfileSelect.Selected+"'?",
+			func(confirm bool) {
+				if confirm {
+					err := userSelection.DeleteProfile(loadProfileSelect.Selected)
+					if err != nil {
+						dialog.ShowError(err, w)
+					} else {
+						dialog.ShowInformation("Success", "Profile deleted", w)
+						updateProfileList()
+						loadProfileSelect.SetSelected("")
+					}
+				}
+			},
+			w,
+		).Show()
+	})
+
+	updateProfileList()
+
+	profileTab := container.NewVBox(
+		widget.NewLabelWithStyle("Profile Management", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+		profileName,
+		saveProfileButton,
 		widget.NewSeparator(),
-		widget.NewButtonWithIcon("Quit", theme.CancelIcon(), func() {
-			w.Close()
-			a.Quit()
-		}),
-		widget.NewSeparator(),
-		credits,
-	))
+		widget.NewLabel("Load Profile:"),
+		loadProfileSelect,
+		deleteProfileButton,
+	)
+
+	// Create tabs
+	tabs := container.NewAppTabs(
+		container.NewTabItem("Injection", injectionTab),
+		container.NewTabItem("Profiles", profileTab),
+	)
+
+	// Create a container for the tabs and the bottom buttons
+	content := container.NewBorder(nil,
+		container.NewVBox(
+			widget.NewSeparator(),
+			container.NewHBox(
+				widget.NewButtonWithIcon("Quit", theme.CancelIcon(), func() {
+					w.Close()
+					a.Quit()
+				}),
+				credits,
+			),
+		),
+		nil, nil,
+		tabs,
+	)
+
+	w.SetContent(content)
 
 	clog.Info("Running...")
 	w.ShowAndRun()
