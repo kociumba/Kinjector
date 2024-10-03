@@ -21,7 +21,7 @@ tasks:
   build:
     vars:
       VERSION:
-        sh: powershell -Command "(git describe --tags --abbrev=0) -replace '^v',''"
+      sh: powershell -Command "try { (git describe --tags --abbrev=0) -replace '^v','' } catch { if ($env:VERSION) { $env:VERSION } else { '0.0.0' } }"
     generates:
     - bin/Kinjector.exe
     sources:
