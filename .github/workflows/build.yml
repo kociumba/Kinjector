@@ -39,6 +39,7 @@ jobs:
           task-version: 3.29.1
 
       - name: Build windows/amd64
+        shell: bash
         run: |
           if [[ "${GITHUB_REF#v}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             task build VERSION="${GITHUB_REF#v}"
