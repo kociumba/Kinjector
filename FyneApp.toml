@@ -3,6 +3,6 @@ Website = "https://github.com/kociumba/Kinjector"
 [Details]
   Icon = "icon.png"
   Name = "Kinjector"
-  ID = "org.kociumba.koinjector"
+  ID = "org.kociumba.kinjector"
   Version = "1.0.0"
   Build = 55
