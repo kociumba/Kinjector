@@ -51,7 +51,7 @@ jobs:
           )
         
           :: Call the batch script to output the version
-          call script.bat
+          call $GITHUB_WORKSPACE/getVersion.bat
         
           :: Use the determined version for the build task
           task build VERSION=%VERSION%
