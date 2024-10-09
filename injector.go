@@ -1,16 +1,19 @@
-// DLL Injector
 package main
 
 import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"image/color"
+	"image/png"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/driver/desktop"
@@ -179,15 +182,6 @@ func main() {
 		clog.Warn("Failed to load profiles:", err)
 	}
 	appIcon := fyne.NewStaticResource(resourceIconPng.StaticName, resourceIconPng.StaticContent)
-	// pathToKinjector, err := os.Executable()
-	// if err != nil {
-	// 	clog.Fatal(err)
-	// }
-
-	// pathToKinjector, err = filepath.EvalSymlinks(pathToKinjector)
-	// if err != nil {
-	// 	clog.Fatal(err)
-	// }
 
 	if *dbg {
 		clog.SetLevel(clog.DebugLevel)
@@ -251,6 +245,7 @@ func main() {
 				}
 			}),
 		)
+		m.Label = "Kinjector"
 		desk.SetSystemTrayMenu(m)
 		desk.SetSystemTrayIcon(appIcon)
 	}
@@ -330,68 +325,6 @@ func main() {
 		userSelection.UnsafeUnload = checked
 	})
 
-	// Create the unload button with confirmation dialog
-	// unloadButton := widget.NewButtonWithIcon("Unload", theme.CancelIcon(), func() {
-	// 	if userSelection.UnsafeUnload {
-	// 		dialog.NewConfirm(
-	// 			"Unsafe Unload",
-	// 			"Warning: Unsafe unload may cause memory leaks or crash the target process. Proceed?",
-	// 			func(confirm bool) {
-	// 				if confirm {
-	// 					performUnload(userSelection, w)
-	// 				}
-	// 			},
-	// 			w,
-	// 		).Show()
-	// 	} else {
-	// 		performUnload(userSelection, w)
-	// 	}
-	// })
-
-	// // create the app layout
-	// //
-	// //
-	// clog.Info("Creating GUI")
-	// // Create the main injection tab
-	// injectionTab := container.NewVBox(
-	// 	widget.NewLabelWithStyle("Select the process to inject: ", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-	// 	procSelect,
-	// 	widget.NewSeparator(),
-	// 	widget.NewButtonWithIcon("Select dll to load", theme.FolderOpenIcon(), func() {
-	// 		userSelection.SelectedDll, err = zenity.SelectFile(zenity.Filename(os.ExpandEnv("$HOME")), zenity.FileFilter{Patterns: []string{"*.dll"}})
-	// 		userSelection.DllFile = trimFilePath(userSelection.SelectedDll)
-	// 		dllDisplay.SetText("Dll selected: " + userSelection.DllFile)
-	// 	}),
-	// 	dllDisplay,
-	// 	// widget.NewSeparator(),
-	// 	widget.NewButtonWithIcon("Inject", theme.ConfirmIcon(), func() {
-	// 		dialog.NewConfirm(
-	// 			"Inject ?",
-	// 			"Inject "+userSelection.SelectedProc+" with "+userSelection.DllFile+" ?",
-	// 			func(b bool) {
-	// 				if b {
-	// 					err := Inject(userSelection)
-	// 					injection.Start()
-	// 					if err != nil {
-	// 						dialog.NewError(err, w).Show()
-	// 						clog.Warn(err)
-	// 						injection.Stop()
-	// 					} else {
-	// 						dialog.NewInformation("Success", "Injected into "+userSelection.SelectedProc+" !", w).Show()
-	// 						injection.Stop()
-	// 					}
-	// 				}
-	// 			},
-	// 			w,
-	// 		).Show()
-	// 	}),
-	// 	// triggers the unloader
-	// 	// widget.NewSeparator(),
-	// 	widget.NewSeparator(),
-	// 	unsafeUnloadCheck,
-	// 	unloadButton,
-	// )
-
 	// Damn this shit stupid
 	selectDllButton := widget.NewButton("", func() {})
 
@@ -413,29 +346,46 @@ func main() {
 			{Text: "Unsafe Unload", Widget: unsafeUnloadCheck},
 		},
 		OnSubmit: func() {
-			dialog.NewConfirm(
-				"Inject ?",
-				fmt.Sprintf("Inject %s with %s ?", userSelection.SelectedProc, userSelection.DllFile),
-				func(b bool) {
-					if b {
-						err := Inject(userSelection)
-						injection.Start()
-						if err != nil {
-							dialog.NewError(err, w).Show()
-							clog.Warn(err)
-							injection.Stop()
-						} else {
-							dialog.NewInformation("Success", "Injected into "+userSelection.SelectedProc+" !", w).Show()
-							injection.Stop()
-						}
-					}
-				},
-				w,
-			).Show()
+			// dialog.NewConfirm(
+			// 	"Inject ?",
+			// 	fmt.Sprintf("Inject %s with %s ?", userSelection.SelectedProc, userSelection.DllFile),
+			// 	func(b bool) {
+			// 		if b {
+			// 			err := Inject(userSelection)
+			// 			injection.Start()
+			// 			if err != nil {
+			// 				dialog.NewError(err, w).Show()
+			// 				clog.Warn(err)
+			// 				injection.Stop()
+			// 			} else {
+			// 				dialog.NewInformation("Success", "Injected into "+userSelection.SelectedProc+" !", w).Show()
+			// 				injection.Stop()
+			// 			}
+			// 		}
+			// 	},
+			// 	w,
+			// ).Show()
+
+			// INFO: no more dialog, to make the shortcut actually usable
+			err := Inject(userSelection)
+			injection.Start()
+			if err != nil {
+				dialog.NewError(err, w).Show()
+				clog.Warn(err)
+				injection.Stop()
+			} else {
+				dialog.NewInformation("Success", "Injected into "+userSelection.SelectedProc+" !", w).Show()
+				injection.Stop()
+			}
 		},
 		OnCancel: func() {
 			// INFO: here to disable unloading if the user has the setting off
 			if !settingsSelection.AllowUnload {
+				dialog.NewInformation(
+					"Settings blocked dll unloading",
+					"Application settings do not allow unloading right now. Change this in the settings tab.",
+					w,
+				).Show()
 				return
 			}
 			if userSelection.UnsafeUnload {
@@ -459,14 +409,29 @@ func main() {
 		// 		return "Unload"
 		// 	} else {
 		// 		return ""
-		// 	}
-		// }(),
+		// 	}(),
 		CancelText: "Unload",
 	}
 
-	injectionTab := container.NewVBox(
-		widget.NewLabelWithStyle("Manage Injection", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-		injectionForm,
+	injectShortcutText := canvas.NewText("inject: CTRL+SHIFT+J", color.RGBA{150, 150, 150, 255})
+	injectShortcutText.TextStyle.Italic = true
+	injectShortcutText.Alignment = fyne.TextAlignCenter
+	quitShortcutText := canvas.NewText("quit: CTRL+Q", color.RGBA{150, 150, 150, 255})
+	quitShortcutText.TextStyle.Italic = true
+	quitShortcutText.Alignment = fyne.TextAlignCenter
+
+	injectionTab := container.NewBorder(
+		container.NewVBox(
+			widget.NewLabelWithStyle("Manage Injection", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			injectionForm,
+		),
+
+		container.NewVBox(
+			injectShortcutText,
+			quitShortcutText,
+		),
+		nil,
+		nil,
 	)
 
 	// Create the profile management tab
@@ -540,60 +505,12 @@ func main() {
 		CancelText: "Delete Profile",
 	}
 
-	// saveProfileButton := widget.NewButtonWithIcon("Save Profile", theme.DocumentSaveIcon(), func() {
-	// 	if profileName.Text != "" {
-	// 		err := userSelection.SaveProfile(profileName.Text)
-	// 		if err != nil {
-	// 			dialog.ShowError(err, w)
-	// 		} else {
-	// 			dialog.ShowInformation("Success", "Profile saved", w)
-	// 			updateProfileList()
-	// 		}
-	// 	} else {
-	// 		dialog.ShowInformation("Error", "Please enter a profile name", w)
-	// 	}
-	// })
-
-	// deleteProfileButton := widget.NewButtonWithIcon("Delete Profile", theme.DeleteIcon(), func() {
-	// 	if loadProfileSelect.Selected == "" {
-	// 		dialog.ShowInformation("Error", "Please select a profile to delete", w)
-	// 		return
-	// 	}
-	// 	dialog.NewConfirm(
-	// 		"Delete Profile",
-	// 		"Are you sure you want to delete the profile '"+loadProfileSelect.Selected+"'?",
-	// 		func(confirm bool) {
-	// 			if confirm {
-	// 				err := userSelection.DeleteProfile(loadProfileSelect.Selected)
-	// 				if err != nil {
-	// 					dialog.ShowError(err, w)
-	// 				} else {
-	// 					dialog.ShowInformation("Success", "Profile deleted", w)
-	// 					updateProfileList()
-	// 					loadProfileSelect.SetSelected("")
-	// 				}
-	// 			}
-	// 		},
-	// 		w,
-	// 	).Show()
-	// })
-
 	updateProfileList()
 
 	profileTab := container.NewVBox(
 		widget.NewLabelWithStyle("Profile Management", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		profileForm,
 	)
-
-	// profileTab := container.NewVBox(
-	// 	widget.NewLabelWithStyle("Profile Management", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-	// 	profileName,
-	// 	saveProfileButton,
-	// 	widget.NewSeparator(),
-	// 	widget.NewLabel("Load Profile:"),
-	// 	loadProfileSelect,
-	// 	deleteProfileButton,
-	// )
 
 	initSettings()
 
@@ -621,6 +538,51 @@ func main() {
 	)
 
 	w.SetContent(content)
+	w.Canvas().AddShortcut(
+		&desktop.CustomShortcut{
+			KeyName:  fyne.KeyJ,
+			Modifier: fyne.KeyModifierControl | fyne.KeyModifierShift,
+		},
+		func(shortcut fyne.Shortcut) {
+			injectionForm.OnSubmit()
+		})
+
+	w.Canvas().AddShortcut(
+		&desktop.CustomShortcut{
+			KeyName:  fyne.KeyQ,
+			Modifier: fyne.KeyModifierControl,
+		},
+		func(shortcut fyne.Shortcut) {
+			w.Close()
+			a.Quit()
+		})
+
+	// Useless for the end user but cool for showcasing it in the readme 😎
+	w.Canvas().AddShortcut(
+		&desktop.CustomShortcut{
+			KeyName:  fyne.KeyF2,
+			Modifier: fyne.KeyModifierControl,
+		},
+		func(shortcut fyne.Shortcut) {
+			fileName := fmt.Sprintf("%s-%s.png", w.Title(), time.Now().Format("2006-01-02-15-04-05"))
+			img := w.Canvas().Capture()
+			kinjector, err := os.Executable()
+			if err != nil {
+				clog.Error("Error saving screenshot", "err", err)
+			}
+			outFile, err := os.Create(filepath.Join(filepath.Dir(kinjector), fileName))
+			if err != nil {
+				clog.Error("Error saving screenshot", "err", err)
+			} else {
+				defer outFile.Close()
+				err = png.Encode(outFile, img)
+				if err != nil {
+					clog.Error("Error saving screenshot", "err", err)
+				} else {
+					clog.Info("Screenshot saved as", "file", fileName)
+				}
+			}
+		})
 
 	clog.Info("Running...")
 	w.ShowAndRun()

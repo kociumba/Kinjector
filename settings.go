@@ -33,7 +33,7 @@ func initSettings() {
 		settingsSelection.saveSettingsToFile()
 	})
 
-	sysTrayCheck = widget.NewCheck("Minimize Kinjecotr to system tray?", func(checked bool) {
+	sysTrayCheck = widget.NewCheck("Minimize Kinjector to system tray on app closing?", func(checked bool) {
 		settingsSelection.MinimizeToTray = checked
 		settingsSelection.saveSettingsToFile()
 	})
@@ -47,7 +47,7 @@ func initSettings() {
 	)
 
 	settingsTab = container.NewVBox(
-		widget.NewLabelWithStyle("App settings", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle("Kinjector settings", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
 		settings,
 	)
 
