@@ -428,6 +428,9 @@ func main() {
 			).Show()
 		},
 		OnCancel: func() {
+			if !settingsSelection.AllowUnload {
+				return
+			}
 			if userSelection.UnsafeUnload {
 				dialog.NewConfirm(
 					"Unsafe Unload",
@@ -444,6 +447,13 @@ func main() {
 			}
 		},
 		SubmitText: "Inject",
+		// CancelText: func() string {
+		// 	if settingsSelection.AllowUnload {
+		// 		return "Unload"
+		// 	} else {
+		// 		return ""
+		// 	}
+		// }(),
 		CancelText: "Unload",
 	}
 
