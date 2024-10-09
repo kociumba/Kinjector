@@ -257,6 +257,12 @@ func main() {
 
 	w.SetContent(widget.NewLabel("Kinjector System Tray"))
 	w.SetCloseIntercept(func() {
+		// INFO: Makes sure the app actually closes if the user has the minimize to system tray option disabled
+		if !settingsSelection.MinimizeToTray {
+			w.Close()
+			a.Quit()
+			return
+		}
 		clog.Info("Minimizing window into system tray")
 		w.Hide()
 	})
@@ -428,6 +434,7 @@ func main() {
 			).Show()
 		},
 		OnCancel: func() {
+			// INFO: here to disable unloading if the user has the setting off
 			if !settingsSelection.AllowUnload {
 				return
 			}
