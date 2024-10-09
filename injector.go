@@ -25,8 +25,9 @@ import (
 var (
 	dbg = flag.Bool("dbg", false, "")
 
-	configDIr  string
-	configFIle string
+	configDir    string
+	configFile   string
+	settingsFile string
 )
 
 func init() {
@@ -35,13 +36,16 @@ func init() {
 		clog.Fatal(err)
 	}
 
-	configDIr = filepath.Join(d, "kinjector")
-	configFIle = filepath.Join(configDIr, "config.json")
+	configDir = filepath.Join(d, "kinjector")
+	configFile = filepath.Join(configDir, "config.json")
+	settingsFile = filepath.Join(configDir, "settings.json")
 
-	err = os.MkdirAll(configDIr, 0755)
+	err = os.MkdirAll(configDir, 0750)
 	if err != nil {
 		clog.Fatal(err)
 	}
+
+	// settingsSelection.loadSettingsFromFile()
 }
 
 type InjectionProfile struct {
@@ -90,7 +94,7 @@ func (u *UserSelection) saveProfilesToFile() error {
 		return err
 	}
 
-	err = os.WriteFile(configFIle, data, 0644)
+	err = os.WriteFile(configFile, data, 0600)
 	if err != nil {
 		return err
 	}
@@ -104,7 +108,7 @@ func (u *UserSelection) saveProfilesToFile() error {
 }
 
 func (u *UserSelection) loadProfilesFromFile() error {
-	data, err := os.ReadFile(configFIle)
+	data, err := os.ReadFile(configFile)
 	if err != nil {
 		if os.IsNotExist(err) {
 			// File doesn't exist, which is fine for first run
@@ -574,10 +578,13 @@ func main() {
 	// 	deleteProfileButton,
 	// )
 
+	initSettings()
+
 	// Create tabs
 	tabs := container.NewAppTabs(
 		container.NewTabItem("Injection", injectionTab),
 		container.NewTabItem("Profiles", profileTab),
+		container.NewTabItem("Settings", settingsTab),
 	)
 
 	// Create a container for the tabs and the bottom buttons

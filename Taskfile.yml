@@ -28,6 +28,7 @@ tasks:
     cmds:
     - task: deps:install
     - task: pre:build
+    - go mod tidy
     - fyne package -os windows -icon assets/icon.png -name Kinjector --tags 'ldflags=-s -w' -appVersion {{.VERSION}}
     - task: find:and:move:bin
 
