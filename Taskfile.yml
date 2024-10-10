@@ -29,7 +29,7 @@ tasks:
     - task: deps:install
     - task: pre:build
     - go mod tidy
-    - fyne package -os windows -icon assets/icon.png -name Kinjector --tags 'ldflags=-s -w' -appVersion {{.VERSION}}
+    - fyne package -os windows -icon assets/icon.ico -name Kinjector --tags 'ldflags=-s -w' -appVersion {{.VERSION}}
     - task: find:and:move:bin
 
   # bugged couse fyne is a piece of shit and assumes every one has a cert to sign release version
