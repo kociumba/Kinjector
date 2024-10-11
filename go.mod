@@ -5,6 +5,7 @@ go 1.23
 require (
 	fyne.io/fyne/v2 v2.5.0
 	github.com/charmbracelet/log v0.4.0
+	github.com/davecgh/go-spew v1.1.1
 	golang.org/x/sys v0.20.0
 )
 
@@ -12,7 +13,6 @@ require (
 	fyne.io/systray v1.11.0 // indirect
 	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/akavel/rsrc v0.10.2 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dchest/jsmin v0.0.0-20220218165748-59f39799265f // indirect
 	github.com/fredbi/uri v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect

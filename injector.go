@@ -20,6 +20,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 	xwidget "fyne.io/x/fyne/widget"
 	clog "github.com/charmbracelet/log"
+	"github.com/davecgh/go-spew/spew"
 	ps "github.com/mitchellh/go-ps"
 	"github.com/ncruces/zenity"
 )
@@ -327,9 +328,11 @@ func main() {
 	}
 
 	injectShortcutText := canvas.NewText("inject: CTRL+SHIFT+J", color.RGBA{150, 150, 150, 255})
+	injectShortcutText.TextSize = 12
 	injectShortcutText.TextStyle.Italic = true
 	injectShortcutText.Alignment = fyne.TextAlignCenter
 	quitShortcutText := canvas.NewText("quit: CTRL+Q", color.RGBA{150, 150, 150, 255})
+	quitShortcutText.TextSize = 12
 	quitShortcutText.TextStyle.Italic = true
 	quitShortcutText.Alignment = fyne.TextAlignCenter
 
@@ -419,6 +422,15 @@ func main() {
 					clog.Info("Screenshot saved as", "file", fileName)
 				}
 			}
+		})
+
+	w.Canvas().AddShortcut(
+		&desktop.CustomShortcut{
+			KeyName:  fyne.KeyD,
+			Modifier: fyne.KeyModifierControl | fyne.KeyModifierShift,
+		},
+		func(shortcut fyne.Shortcut) {
+			spew.Dump(userSelection)
 		})
 
 	clog.Info("Running...")

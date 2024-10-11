@@ -10,6 +10,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	clog "github.com/charmbracelet/log"
+	"github.com/davecgh/go-spew/spew"
 )
 
 type SettingsSelection struct {
@@ -60,6 +61,10 @@ func initSettings() {
 
 	// Update checkbox states
 	updateCheckboxStates()
+
+	if *dbg {
+		spew.Dump(settingsSelection)
+	}
 }
 
 func (s *SettingsSelection) saveSettingsToFile() error {
